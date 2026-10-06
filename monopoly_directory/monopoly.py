@@ -635,17 +635,11 @@ def process_roll(num_rolls: int, dice: tuple) -> str:
     bottom_screen_wipe()
     update_history(f"{players[turn]} rolled {dice[0]} and {dice[1]}")
 
-    if dice[0] == dice[1]:
-        if  num_rolls == 1:
-            update_history(f"{players[turn]} rolled doubles! Roll again.")
-
-        elif num_rolls == 2:
-            update_history(f"{players[turn]} rolled doubles!(X2) Roll again.")
-
-        elif num_rolls == 3:
-            update_history(f"{players[turn]} rolled doubles three times\n in a row!")
-            update_history(f"{players[turn]} is going to jail!")
-            players[turn].go_to_jail()
+    if dice[0] == dice[1] and num_rolls == 3:
+        update_history(f"{players[turn]} rolled doubles three times in a row!")
+        update_history(f"{players[turn]} is going to jail!")
+        board.update_location(players[turn], players[turn].location, 10)
+        players[turn].go_to_jail()
     refresh_board()
     #if player rolled their third double they will be in jail and their location doesn't update
     if players[turn].jail == False:
@@ -694,7 +688,8 @@ def evaluate_board_location(num_rolls: int, dice: tuple) -> str:
                 players[turn].pay(200)
                 update_history(f"{players[turn].name} paid income tax ($200)")
             elif (board.locations[players[turn].location].owner == -6): #jail
-                update_history("Just visiting!")
+                if not players[turn].jail:
+                    update_history("Just visiting!")
             elif (board.locations[players[turn].location].owner == -7):  # go to jail
                 players[turn].go_to_jail()
             elif (board.locations[players[turn].location].owner == -8):  # free parking
@@ -723,8 +718,8 @@ def evaluate_board_location(num_rolls: int, dice: tuple) -> str:
         
     # Check for doubles and roll again only if player wasn't in jail at the start of their turn
     if dice[0] == dice[1]: # and not was_in_jail:
-        num_rolls += 1
-        request_roll()
+        update_history(f"{players[turn].name} rolled doubles! Roll again.")
+        return output + set_cursor_str(0,36) + "Doubles! Type roll to roll again." + get_gameboard()
     return "player_choice" + output + set_cursor_str(0, 36) + "e to end turn, p to manage properties, d to view a deed?" + get_gameboard()
 
 def end_turn():
